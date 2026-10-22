@@ -3,6 +3,10 @@ title: "MB1A Practical 1 Part 3"
 author: "Carlotta Kern"
 ---
 ```{r}
+library(tidyverse)
+library(gt)
+```
+```{r}
 sqrt(9)
 ```
 ```{r}
