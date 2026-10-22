@@ -1,0 +1,61 @@
+---
+title: "MB1A Practical 1 Part 3"
+author: "Carlotta Kern"
+---
+```{r}
+sqrt(9)
+```
+```{r}
+round(3.14159)
+```
+```{r}
+round(3.14159, digits = 2)
+```
+```{r}
+print(seq(1,10,2))
+```
+```{r}
+print(seq(by=2,from=1,to=10))
+```
+```{r}
+print(rep(2,5))
+```
+```{r}
+print(rep(x=2, times=5))
+```
+```{r}
+my_variable <- 12
+print(my_variable)
+```
+```{r}
+my_variable <- 12
+my_variable <- 10
+print(my_variable)
+```
+```{r}
+x <- "hi there"
+print(class(x))
+```
+```{r}
+x <- 1513871
+print(class(x))
+```
+```{r}
+x <- FALSE
+print(class(x))
+```
+```{r}
+cell_id_1 <- "CX1"
+cell_id_2 <- "CX2"
+
+treated_1 <- TRUE
+treated_2 <- FALSE
+
+n_before_1 <- 5415
+n_before_2 <- 8123
+
+n_after_1 <- 1432
+n_after_2 <- 7543
+```
+
+
