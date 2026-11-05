@@ -1,0 +1,33 @@
+---
+title: "prac2_exercises.qmd"
+---
+
+```{r}
+library(tidyverse)
+library(gt)
+input_vec <- c(5, -10, 4, -3)
+```
+
+
+```{r}
+result <- input_vec |> mean() |> abs()|> round()
+
+print(result)
+```
+```{r}
+y <- 12
+```
+```{r}
+print(y == 7)
+```
+```{r}
+print(y < 15)
+```
+```{r}
+print(y > 20)
+```
+```{r}
+print(y <= 12)
+```
+
+
