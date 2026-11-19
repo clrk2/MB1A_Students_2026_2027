@@ -1,0 +1,211 @@
+---
+title: "hpv"
+---
+```{r}
+library(tidyverse)
+library(gt)
+set.seed(42)
+```
+```{r}
+hpv_df <- read_csv("data/cm_all_ages.csv")
+gt(hpv_df)
+```
+```{r}
+tp <- hpv_df |>
+  filter(
+    HPV_Status == "HPV+",
+    Cytology == "Abnormal"
+  ) |>
+  pull(N_individuals)
+tn <- hpv_df |>
+  filter(
+    HPV_Status == "HPV-",
+    Cytology == "Normal"
+  ) |>
+  pull(N_individuals)
+fp <- hpv_df |>
+  filter(
+    HPV_Status == "HPV+",
+    Cytology == "Normal"
+  ) |>
+  pull(N_individuals)
+fn <- hpv_df |>
+  filter(
+    HPV_Status == "HPV-",
+    Cytology == "Abnormal"
+  ) |>
+  pull(N_individuals)
+```
+```{r}
+# Count how many people have hrHPV - positives
+hpv_count <- tp + fp
+
+# Calculate the proportion of people with hrHPV who
+# also have abnormal cells - true positives / positives
+prop_abnormal_given_hpv <- tp / hpv_count
+print(prop_abnormal_given_hpv)
+```
+```{r}
+# Count how many people don't have hrHPV - negatives
+hpv_m_count <- tn + fn
+
+# Calculate the proportion of people who don't have hrHPV who
+# do have abnormal cells - false_negatives / negatives
+prop_abnormal_given_no_hpv <- fn / hpv_m_count
+print(prop_abnormal_given_no_hpv)
+```
+```{r}
+# Count how many people have abnormal cells -
+# true positives and false negatives
+ab_count <- tp + fn
+
+# Calculate the proportion of people who have
+# abnormal cells who also have hpv
+prop_hpv_given_abnormal <- tp / ab_count
+print(prop_hpv_given_abnormal)
+```
+```{r}
+# Count how many people have normal cells -
+# true negatives and false positives
+n_count <- tn + fp
+
+# Calculate the proportion of people who have
+# normal cells who don't have hpv
+prop_no_hpv_given_normal <- tn / n_count
+print(prop_no_hpv_given_normal)
+```
+```{r}
+cyt_statuses_20_29 <- rbinom(10000, size = 1, prob = 0.0508)
+cyt_statuses_30_49 <- rbinom(10000, size = 1, prob = 0.0181)
+cyt_statuses_50_64 <- rbinom(10000, size = 1, prob = 0.0047)
+```
+```{r}
+n_mod_sev_20_29 <- sum(cyt_statuses_20_29)
+n_ok_20_29 <- 10000 - n_mod_sev_20_29
+n_mod_sev_30_49 <- sum(cyt_statuses_30_49)
+n_ok_30_49 <- 10000 - n_mod_sev_30_49
+n_mod_sev_50_64 <- sum(cyt_statuses_50_64)
+n_ok_50_64 <- 10000 - n_mod_sev_50_64
+```
+```{r}
+ages <- c("20-29", "30-49", "50-64")
+probs <- c(0.0508, 0.0181, 0.0047)
+
+results <- tibble()
+for (i in 1:length(ages)) {
+  simulation <- rbinom(10000, 1, prob = probs[i])
+  row <- tibble(
+    age = ages[i],
+    perc = probs[i],
+    nModerateSevere = sum(simulation == 1),
+    nNot = sum(simulation == 0)
+  )
+  results <- results |>
+    bind_rows(row)
+}
+gt(results)
+```
+```{r}
+prop_hpv_given_normal <- 1 - prop_no_hpv_given_normal
+```
+```{r}
+hpv_count_ab_20_29 <- sum(rbinom(n_mod_sev_20_29, size = 1, prob = prop_hpv_given_abnormal))
+hpv_count_ab_30_49 <- sum(rbinom(n_mod_sev_30_49, size = 1, prob = prop_hpv_given_abnormal))
+hpv_count_ab_50_64 <- sum(rbinom(n_mod_sev_50_64, size = 1, prob = prop_hpv_given_abnormal))
+```
+```{r}
+hpv_count_norm_20_29 <- sum(rbinom(n_ok_20_29, size = 1, prob = prop_hpv_given_normal))
+hpv_count_norm_30_49 <- sum(rbinom(n_ok_30_49, size = 1, prob = prop_hpv_given_normal))
+hpv_count_norm_50_64 <- sum(rbinom(n_ok_50_64, size = 1, prob = prop_hpv_given_normal))
+```
+```{r}
+n_hpv_20_29 <- hpv_count_ab_20_29 + hpv_count_norm_20_29
+n_hpv_30_49 <- hpv_count_ab_30_49 + hpv_count_norm_30_49
+n_hpv_50_64 <- hpv_count_ab_50_64 + hpv_count_norm_50_64
+```
+```{r}
+row_20_29 <- tibble(
+  age_range = "20-29",
+  n_hpv = n_hpv_20_29,
+  n_abnormal_cells = n_mod_sev_20_29,
+  n_hpv_and_abnormal_cells = hpv_count_ab_20_29
+)
+
+row_30_49 <- tibble(
+  age_range = "30-49",
+  n_hpv = n_hpv_30_49,
+  n_abnormal_cells = n_mod_sev_30_49,
+  n_hpv_and_abnormal_cells = hpv_count_ab_30_49
+)
+
+row_50_64 <- tibble(
+  age_range = "50-64",
+  n_hpv = n_hpv_50_64,
+  n_abnormal_cells = n_mod_sev_50_64,
+  n_hpv_and_abnormal_cells = hpv_count_ab_50_64
+)
+
+results <- bind_rows(row_20_29, row_30_49, row_50_64)
+gt(results)
+```
+```{r}
+ages <- c("20-29", "30-49", "50-64")
+n_mod_sev <- c(n_mod_sev_20_29, n_mod_sev_30_49, n_mod_sev_50_64)
+n_ok <- c(n_ok_20_29, n_ok_30_49, n_ok_50_64)
+
+results <- tibble()
+
+for (i in 1:length(ages)) {
+
+  # Simulate the number of people with HPV among those
+  # with moderate / severe abnormal cytology
+  hpv_count_ab <- sum(
+    rbinom(
+      n_mod_sev[i],
+      size = 1,
+      prob = prop_hpv_given_abnormal
+    )
+  )
+
+  # Simulate the number of people with HPV among those
+  # without moderate / severe abnormal cytology
+  hpv_count_norm <- sum(
+    rbinom(
+      n_ok[i],
+      size = 1,
+      prob = prop_hpv_given_normal
+    )
+  )
+
+  # Calculate the total number of people with HPV
+  n_hpv <- hpv_count_ab + hpv_count_norm
+
+  # Create one row for this age group
+  row <- tibble(
+    age_range = ages[i],
+    n_hpv = n_hpv,
+    n_abnormal_cells = n_mod_sev[i],
+    n_hpv_and_abnormal_cells = hpv_count_ab
+  )
+
+  # Add the row to the results data frame
+  results <- results |>
+    bind_rows(row)
+}
+
+gt(results)
+```
+```{r}
+df <- tibble(
+  x = c(1, 2, 1, 3),
+  y = c(3, 4, 1, 6)
+)
+gt(df)
+```
+```{r}
+df <- df |>
+  mutate(x_plus_y = x + y)
+
+gt(df)
+```
+
