@@ -1,0 +1,58 @@
+---
+title: "distributions"
+---
+```{r}
+library(tidyverse)
+library(gt)
+library(janitor)
+set.seed(42)
+```
+```{r}
+# Read the data
+fish <- read_csv("data/fish.csv") |> clean_names()
+
+# Filter to keep only the genus Geotria
+geo <- fish |> filter(genus == "Geotria")
+
+# Plot a histogram
+ggplot(geo, aes(x = total_length_cm)) +
+  geom_histogram() +
+  ggtitle("Distribution of total length in Geotria fish - Observed") +
+  xlab("Total length (cm)") +
+  ylab("Number of fish") +
+  theme_minimal()
+```
+```{r}
+ggplot(geo, aes(
+  x = total_length_cm
+)) +
+  geom_histogram(aes(y = after_stat(density)),
+    bins = 30
+  ) +
+  ggtitle("Distribution of total length in Geotria fish  - Observed") +
+  xlab("Total length (cm)") +
+  ylab("Density") +
+  theme_minimal()
+```
+```{r}
+# Calculate the observed mean and standard deviation
+mean_obs <- mean(pull(geo, total_length_cm))
+sd_obs <- sd(pull(geo, total_length_cm))
+
+# Draw the plot
+ggplot(geo, aes(
+  x = total_length_cm
+)) +
+  geom_histogram(aes(y = after_stat(density)),
+    bins = 50
+  ) +
+  stat_function(
+    fun = dnorm,
+    args = list(mean = mean_obs, sd = sd_obs)
+  ) +
+  ggtitle("Distribution of total length in Geotria fish  -\nObserved and Theoretical") +
+  xlab("Total length (cm)") +
+  ylab("Density") +
+  theme_minimal()
+```
+
